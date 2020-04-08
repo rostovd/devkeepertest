@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WorldObjects</title>
+  <style>
+    .item {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <form id="form">
+      <input type="text" name="x" value="">
+      <input type="text" name="y" value="">
+      <input type="text" name="z" value="">
+      <input type="text" name="photo" value="">
+      <button>Отправить</button>
+    </form>
+
+    <div id="list"></div>
+  </div>
+
+  <script type="text/javascript">
+    (function() {
+      function getPosition(pos) {
+        return [pos.x, pos.y, pos.z];
+      }
+      
+      function markupItem(record) {
+        const elMarkup = `
+              <div class="item">
+                <div>Position ${getPosition(record.pos).join(', ')}</div>
+                <div>Photo: ${record.photo}</div>
+              </div>
+            `;
+        
+        return elMarkup;
+      }
+
+      const listEl = document.getElementById("list");
+
+      // Запрашиваем все данные WorldObject
+      // Возвращается массив
+      // Выводим в console
+      fetch('/api/worldobjects', {method: "GET"})
+        .then(res => res.json())
+        .then(res => {
+          let content = '';
+          res.forEach(record => {
+            content += markupItem(record);
+          });
+
+          listEl.innerHTML = content;
+        });
+
+      const form = document.getElementById("form");
+      form.addEventListener("submit", function(e) {
+        // Останавливаем поведение по умолчанию
+        // В данном случае останавливаем редирект
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+
+        const data = {
+          pos: {
+            x: formData.get('x'),
+            y: formData.get('y'),
+            z: formData.get('z'),
+          },
+          photo: formData.get('photo')
+        };
+
+        fetch('/api/worldobjects', {
+          method: "POST", 
+          body: JSON.stringify(data),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+          .then(res => res.json())
+          .then(res => {
+            listEl.insertAdjacentHTML('beforeend', markupItem(res));
+          })
+      });
+    })()
+  </script>
+</body>
+</html>
