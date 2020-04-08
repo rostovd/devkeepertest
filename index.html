@@ -8,15 +8,26 @@
     .item {
       margin-top: 10px;
     }
+
+    .form {
+      display: flex;
+      flex-direction: column;
+      width: 300px;
+      margin-bottom: 10px;
+    }
+
+    .form > * {
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
   <div>
-    <form id="form">
-      <input type="text" name="x" value="">
-      <input type="text" name="y" value="">
-      <input type="text" name="z" value="">
-      <input type="text" name="photo" value="">
+    <form id="form" class="form">
+      <input type="text" name="x" value="" placeholder="X" required>
+      <input type="text" name="y" value="" placeholder="Y" required>
+      <input type="text" name="z" value="" placeholder="Z" required>
+      <input type="file" name="photo" id="photo-input" required>
       <button>Отправить</button>
     </form>
 
@@ -26,14 +37,14 @@
   <script type="text/javascript">
     (function() {
       function getPosition(pos) {
-        return [pos.x, pos.y, pos.z];
+        return pos ? [pos.x, pos.y, pos.z] : [];
       }
       
       function markupItem(record) {
         const elMarkup = `
               <div class="item">
                 <div>Position ${getPosition(record.pos).join(', ')}</div>
-                <div>Photo: ${record.photo}</div>
+                <div>Photo: ${record.photo ? `<img src="${record.photo}" width="150"/>` : ''}</div>
               </div>
             `;
         
@@ -64,26 +75,14 @@
         
         const formData = new FormData(e.target);
 
-        const data = {
-          pos: {
-            x: formData.get('x'),
-            y: formData.get('y'),
-            z: formData.get('z'),
-          },
-          photo: formData.get('photo')
-        };
-
-        fetch('/api/worldobjects', {
+         fetch('/api/worldobjects', {
           method: "POST", 
-          body: JSON.stringify(data),
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          body: formData,
         })
           .then(res => res.json())
           .then(res => {
             listEl.insertAdjacentHTML('beforeend', markupItem(res));
-          })
+          }) 
       });
     })()
   </script>
